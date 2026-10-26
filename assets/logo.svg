@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- BackupGuard: escudo (proteção) com seta para cima (envio para a nuvem) -->
+  <rect width="256" height="256" rx="56" fill="#111111"/>
+  <path d="M128 34 L206 62 V122 C206 172 173 207 128 224 C83 207 50 172 50 122 V62 Z" fill="#FFFFFF"/>
+  <path d="M128 78 L172 126 H143 V176 H113 V126 H84 Z" fill="#111111"/>
+</svg>

@@ -1,0 +1,20 @@
+# Compilação
+bin/
+obj/
+publish/
+*.user
+.vs/
+
+# Segredos — NUNCA versionar
+credentials.json
+token.json
+secrets.bin
+*.pfx
+
+# Scripts antigos (têm o token do Telegram escrito no código) e seus executáveis
+backup_*.py
+*.spec
+build/
+dist/
+erro.log
+artifacts/

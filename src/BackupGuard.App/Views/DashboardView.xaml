@@ -1,0 +1,116 @@
+<UserControl x:Class="BackupGuard.App.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <!-- Serviço -->
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Serviço de backup" Style="{StaticResource CardTitle}" VerticalAlignment="Center"/>
+                        <Border Style="{StaticResource LevelBadge}" Tag="{Binding ServiceLevel}" Margin="10,0,0,0">
+                            <TextBlock Text="{Binding ServiceTitle}"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding ServiceDetail}" Style="{StaticResource Body}" Margin="0,6,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Iniciar" Style="{StaticResource PrimaryButton}" Command="{Binding StartCommand}"
+                            Visibility="{Binding CanStart, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Reiniciar" Style="{StaticResource SecondaryButton}" Command="{Binding RestartCommand}"
+                            Visibility="{Binding CanStop, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Parar" Style="{StaticResource SecondaryButton}" Command="{Binding StopCommand}" Margin="0"
+                            Visibility="{Binding CanStop, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Ações rápidas -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="AÇÕES" Style="{StaticResource SectionLabel}"/>
+                <WrapPanel>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding RunNowCommand}" Margin="0,0,8,6">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE768;" FontFamily="{StaticResource Icons}" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="Enviar backups agora" Margin="7,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding SendSummaryCommand}" Margin="0,0,8,6">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE724;" FontFamily="{StaticResource Icons}" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="Enviar resumo no Telegram" Margin="7,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
+                <TextBlock Style="{StaticResource Hint}"
+                           Text="&quot;Enviar backups agora&quot; processa na hora os arquivos que já estão na pasta, sem esperar o tempo de estabilidade. Arquivos ainda abertos por outro programa continuam aguardando."/>
+            </StackPanel>
+        </Border>
+
+        <!-- Tarefas -->
+        <TextBlock Text="TAREFAS" Style="{StaticResource SectionLabel}" Margin="0,6,0,8"/>
+        <TextBlock Text="Nenhuma tarefa configurada. Adicione em Tarefas." Margin="0,0,0,12">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource Body}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Jobs.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+        <ItemsControl ItemsSource="{Binding Jobs}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="240"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource CardTitle}" VerticalAlignment="Center"/>
+                                    <Border Style="{StaticResource LevelBadge}" Tag="{Binding Level}" Margin="10,0,0,0">
+                                        <TextBlock Text="{Binding StatusText}"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Folder}" Style="{StaticResource Hint}" FontFamily="{StaticResource Mono}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Folder}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="ÚLTIMO BACKUP" Style="{StaticResource SectionLabel}" Margin="0,0,0,3"/>
+                                <TextBlock Text="{Binding LastBackupText}" FontSize="11.5" FontFamily="{StaticResource Mono}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="ORIGINAL → NUVEM" Style="{StaticResource SectionLabel}" Margin="0,0,0,3"/>
+                                <TextBlock Text="{Binding DetailText}" FontSize="11.5" FontFamily="{StaticResource Mono}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding WaitingText}" Style="{StaticResource Hint}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Google Drive -->
+        <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+            <StackPanel>
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;"
+                            Command="{Binding RefreshDriveCommand}" ToolTip="Atualizar"/>
+                    <TextBlock Text="GOOGLE DRIVE" Style="{StaticResource SectionLabel}" VerticalAlignment="Center" Margin="0"/>
+                </DockPanel>
+                <ProgressBar Value="{Binding DrivePercent, Mode=OneWay}" Maximum="100" Margin="0,8,0,6"/>
+                <TextBlock Text="{Binding DriveText}" Style="{StaticResource Body}"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

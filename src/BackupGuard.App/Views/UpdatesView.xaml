@@ -1,0 +1,76 @@
+<UserControl x:Class="BackupGuard.App.Views.UpdatesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Procurar agora" Style="{StaticResource SecondaryButton}" Command="{Binding CheckNowCommand}"/>
+                        <Button Content="Instalar agora" Style="{StaticResource PrimaryButton}" Margin="0" Command="{Binding InstallNowCommand}"
+                                Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="BackupGuard" Style="{StaticResource CardTitle}" VerticalAlignment="Center"/>
+                        <Border Style="{StaticResource LevelBadge}" Tag="{Binding StatusLevel}" Margin="10,0,0,0">
+                            <TextBlock Text="{Binding StatusText}"/>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170"/>
+                        <ColumnDefinition Width="170"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="INSTALADA" Style="{StaticResource SectionLabel}" Margin="0,0,0,3"/>
+                        <TextBlock Text="{Binding InstalledVersion, Mode=OneWay}" FontFamily="{StaticResource Mono}" FontSize="12.5"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="MAIS RECENTE" Style="{StaticResource SectionLabel}" Margin="0,0,0,3"/>
+                        <TextBlock Text="{Binding LatestVersion, TargetNullValue=—}" FontFamily="{StaticResource Mono}" FontSize="12.5"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="ÚLTIMA VERIFICAÇÃO" Style="{StaticResource SectionLabel}" Margin="0,0,0,3"/>
+                        <TextBlock Text="{Binding LastCheckText}" FontFamily="{StaticResource Mono}" FontSize="12.5"/>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="{Binding Error}" Foreground="{StaticResource Danger}" FontSize="11.5" TextWrapping="Wrap" Margin="0,10,0,0"
+                           Visibility="{Binding Error, Converter={StaticResource NullToVis}}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}" Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+                <TextBlock Text="NOVIDADES" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="{Binding Notes, TargetNullValue=Sem descrição.}" Style="{StaticResource Body}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <CheckBox Content="Procurar atualizações automaticamente" Style="{StaticResource Switch}" IsChecked="{Binding Enabled}"/>
+                <TextBlock Style="{StaticResource Body}" Margin="37,4,0,0" Text="O serviço consulta o GitHub a cada 6 horas."/>
+                <CheckBox Content="Instalar sozinho" Style="{StaticResource Switch}" IsChecked="{Binding AutoInstall}" Margin="0,14,0,0"
+                          IsEnabled="{Binding Enabled}"/>
+                <TextBlock Style="{StaticResource Body}" Margin="37,4,0,0"
+                           Text="A instalação espera o backup em andamento terminar e reinicia o serviço. Desligado, você recebe um aviso no Telegram e instala quando quiser."/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="COMO A ATUALIZAÇÃO É PROTEGIDA" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Style="{StaticResource Body}">
+                    <Run Text="✓ Cada versão é assinada digitalmente. O programa recusa qualquer pacote sem a assinatura correta — mesmo que alguém invada a conta do GitHub."/>
+                    <LineBreak/><Run Text="✓ Nunca instala uma versão mais antiga do que a atual."/>
+                    <LineBreak/><Run Text="✓ Faz cópia da versão atual antes de trocar e a restaura sozinho se a nova não funcionar."/>
+                    <LineBreak/><Run Text="✓ Avisa no Telegram antes e depois de cada atualização."/>
+                </TextBlock>
+                <Button Content="Ver versões publicadas" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                        Margin="0,12,0,0" Command="{Binding OpenReleasesCommand}"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

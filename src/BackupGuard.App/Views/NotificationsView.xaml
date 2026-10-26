@@ -1,0 +1,83 @@
+<UserControl x:Class="BackupGuard.App.Views.NotificationsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <CheckBox Content="Avisos no Telegram" Style="{StaticResource Switch}" IsChecked="{Binding TelegramEnabled}"/>
+                <TextBlock Style="{StaticResource Body}" Margin="37,4,0,0"
+                           Text="Backup enviado, falhas, backup que não chegou, alertas de anomalia, serviço iniciado/parado e qualquer alteração de configuração."/>
+
+                <Grid Margin="0,16,0,0" IsEnabled="{Binding TelegramEnabled}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Chat ID" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding ChatId, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource Mono}" FontSize="12"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Token do bot" Style="{StaticResource FieldLabel}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Style="{StaticResource Badge}" Background="{StaticResource SuccessBg}"
+                                    Visibility="{Binding HasToken, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="configurado" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Success}"/>
+                            </Border>
+                            <Border Style="{StaticResource Badge}" Background="{StaticResource DangerBg}"
+                                    Visibility="{Binding HasToken, Converter={StaticResource InverseBoolToVis}}">
+                                <TextBlock Text="não configurado" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Danger}"/>
+                            </Border>
+                            <Button Content="Alterar token" Style="{StaticResource SecondaryButton}" Margin="10,0,0,0"
+                                    Command="{Binding ChangeTokenCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+                <Button Content="Enviar mensagem de teste" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                        Margin="0,14,0,0" Command="{Binding TestTelegramCommand}" IsEnabled="{Binding TelegramEnabled}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="RESUMO DIÁRIO" Style="{StaticResource SectionLabel}"/>
+                <CheckBox Content="Enviar resumo todos os dias" Style="{StaticResource Switch}" IsChecked="{Binding SummaryEnabled}"/>
+                <TextBlock Style="{StaticResource Body}" Margin="37,4,0,0"
+                           Text="Último backup de cada tarefa, falhas das últimas 24h, espaço livre nos discos e uso do Google Drive."/>
+                <StackPanel Orientation="Horizontal" Margin="0,12,0,0" IsEnabled="{Binding SummaryEnabled}">
+                    <TextBlock Text="Horário" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox Text="{Binding SummaryTime, UpdateSourceTrigger=PropertyChanged}" Width="80" FontFamily="{StaticResource Mono}" FontSize="12"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="MONITOR EXTERNO (RECOMENDADO)" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Style="{StaticResource Body}"
+                           Text="Um serviço gratuito como o healthchecks.io recebe um sinal a cada backup. Se o sinal parar de chegar — PC desligado, travado ou comprometido — ele avisa você sozinho, por e-mail ou Telegram. É a única proteção que funciona mesmo quando este computador não consegue avisar."/>
+                <TextBlock Text="URL de ping" Style="{StaticResource FieldLabel}" Margin="0,12,0,5"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding PingUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource Mono}" FontSize="12"/>
+                    <Button Grid.Column="1" Content="Testar" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Command="{Binding TestPingCommand}"/>
+                </Grid>
+                <TextBlock Style="{StaticResource Hint}" Text="Ex.: https://hc-ping.com/seu-codigo — configure o período como 1 dia e a tolerância como algumas horas."/>
+                <Button Content="Abrir healthchecks.io" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                        Margin="0,10,0,0" Command="{Binding OpenHealthchecksCommand}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="IDENTIFICAÇÃO" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="Nome deste computador nas mensagens" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding MachineName, UpdateSourceTrigger=PropertyChanged}" Width="300" HorizontalAlignment="Left"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

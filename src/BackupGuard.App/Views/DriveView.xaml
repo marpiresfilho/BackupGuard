@@ -1,0 +1,80 @@
+<UserControl x:Class="BackupGuard.App.Views.DriveView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Abrir Drive" Style="{StaticResource SecondaryButton}" Command="{Binding OpenDriveCommand}"/>
+                        <Button Style="{StaticResource PrimaryButton}" Margin="0" Command="{Binding ConnectCommand}">
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Conectar conta Google"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                <Setter Property="Text" Value="Trocar conta"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Conta" Style="{StaticResource CardTitle}" VerticalAlignment="Center"/>
+                        <Border Style="{StaticResource Badge}" Background="{StaticResource SuccessBg}" Margin="10,0,0,0"
+                                Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Conectada" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Success}"/>
+                        </Border>
+                        <Border Style="{StaticResource Badge}" Background="{StaticResource DangerBg}" Margin="10,0,0,0"
+                                Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVis}}">
+                            <TextBlock Text="Não conectada" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Danger}"/>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+                <DockPanel Margin="0,16,0,0">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;" Command="{Binding RefreshUsageCommand}" ToolTip="Atualizar"/>
+                    <TextBlock Text="ESPAÇO" Style="{StaticResource SectionLabel}" VerticalAlignment="Center" Margin="0"/>
+                </DockPanel>
+                <ProgressBar Value="{Binding UsagePercent, Mode=OneWay}" Maximum="100" Margin="0,8,0,6"/>
+                <TextBlock Text="{Binding UsageText}" Style="{StaticResource Body}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}" Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVis}}">
+            <StackPanel>
+                <TextBlock Text="COMO CONECTAR (UMA VEZ SÓ)" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Style="{StaticResource Body}">
+                    <Run Text="1. No Google Cloud Console, com a conta nova, crie um projeto e ative a"/> <Run Text="Google Drive API" FontWeight="SemiBold"/><Run Text="."/>
+                    <LineBreak/><Run Text="2. Em Tela de consentimento OAuth, escolha Externo e"/> <Run Text="publique o app (Em produção)" FontWeight="SemiBold"/><Run Text=" — no modo Teste o acesso expira em 7 dias."/>
+                    <LineBreak/><Run Text="3. Em Credenciais, crie um"/> <Run Text="ID do cliente OAuth" FontWeight="SemiBold"/><Run Text=" do tipo App para computador e baixe o JSON."/>
+                    <LineBreak/><Run Text="4. Clique em Conectar conta Google e selecione o arquivo baixado."/>
+                </TextBlock>
+                <Button Content="Abrir Google Cloud Console" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                        Margin="0,12,0,0" Command="{Binding OpenConsoleCommand}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="PASTA NO DRIVE" Style="{StaticResource SectionLabel}"/>
+                <TextBox Text="{Binding RootFolder, UpdateSourceTrigger=PropertyChanged}" Width="260" HorizontalAlignment="Left"/>
+                <TextBlock Style="{StaticResource Hint}" Text="Cada tarefa ganha uma subpasta com o próprio nome, criada automaticamente."/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="VERIFICAR AS PASTAS A CADA" Style="{StaticResource SectionLabel}"/>
+                <WrapPanel>
+                    <RadioButton Style="{StaticResource Pill}" Content="15 s" IsChecked="{Binding ScanInterval, Converter={StaticResource Equals}, ConverterParameter=15}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="30 s" IsChecked="{Binding ScanInterval, Converter={StaticResource Equals}, ConverterParameter=30}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="1 min" IsChecked="{Binding ScanInterval, Converter={StaticResource Equals}, ConverterParameter=60}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="5 min" IsChecked="{Binding ScanInterval, Converter={StaticResource Equals}, ConverterParameter=300}"/>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

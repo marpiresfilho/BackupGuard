@@ -1,0 +1,82 @@
+<UserControl x:Class="BackupGuard.App.Views.SecurityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Senha dos backups" Style="{StaticResource CardTitle}" VerticalAlignment="Center"/>
+                    <Border Style="{StaticResource Badge}" Background="{StaticResource SuccessBg}" Margin="10,0,0,0"
+                            Visibility="{Binding HasPassword, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Definida" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Success}"/>
+                    </Border>
+                    <Border Style="{StaticResource Badge}" Background="{StaticResource DangerBg}" Margin="10,0,0,0"
+                            Visibility="{Binding HasPassword, Converter={StaticResource InverseBoolToVis}}">
+                        <TextBlock Text="Não definida — nenhum backup será enviado" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Danger}"/>
+                    </Border>
+                </StackPanel>
+                <TextBlock Style="{StaticResource Body}" Margin="0,8,0,0"
+                           Text="Os arquivos são criptografados com AES-256 antes de sair deste computador. Quem acessar a conta Google não consegue abrir nada sem a senha. Para restaurar, basta o 7-Zip e a senha, em qualquer computador."/>
+                <TextBlock Style="{StaticResource Body}" Margin="0,6,0,0" Foreground="{StaticResource Warning}" FontWeight="SemiBold"
+                           Text="Guarde a senha fora deste computador. Se ela for perdida, os backups não podem ser abertos."/>
+                <TextBlock Style="{StaticResource Hint}" Text="{Binding PreviousPasswords, StringFormat=Senhas antigas guardadas: {0}}"/>
+                <WrapPanel Margin="0,12,0,0">
+                    <Button Content="Gerar senha forte" Style="{StaticResource PrimaryButton}" Command="{Binding GeneratePasswordCommand}"/>
+                    <Button Content="Definir manualmente" Style="{StaticResource SecondaryButton}" Command="{Binding SetPasswordCommand}"/>
+                    <Button Content="Mostrar senha" Style="{StaticResource SecondaryButton}" Command="{Binding ShowPasswordCommand}"
+                            IsEnabled="{Binding HasPassword}"/>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="NÍVEL DE COMPACTAÇÃO" Style="{StaticResource SectionLabel}"/>
+                <WrapPanel>
+                    <RadioButton Style="{StaticResource Pill}" Content="Rápida" IsChecked="{Binding CompressionLevel, Converter={StaticResource Equals}, ConverterParameter=1}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="Normal" IsChecked="{Binding CompressionLevel, Converter={StaticResource Equals}, ConverterParameter=5}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="Alta" IsChecked="{Binding CompressionLevel, Converter={StaticResource Equals}, ConverterParameter=7}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="Máxima" IsChecked="{Binding CompressionLevel, Converter={StaticResource Equals}, ConverterParameter=9}"/>
+                </WrapPanel>
+                <TextBlock Style="{StaticResource Hint}" Text="Máxima ocupa menos espaço na nuvem e leva mais tempo para compactar. Recomendado: Máxima."/>
+
+                <TextBlock Text="NÚCLEOS DO PROCESSADOR" Style="{StaticResource SectionLabel}" Margin="0,16,0,8"/>
+                <WrapPanel>
+                    <RadioButton Style="{StaticResource Pill}" Content="Automático" IsChecked="{Binding CompressionThreads, Converter={StaticResource Equals}, ConverterParameter=null}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="1" IsChecked="{Binding CompressionThreads, Converter={StaticResource Equals}, ConverterParameter=1}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="2" IsChecked="{Binding CompressionThreads, Converter={StaticResource Equals}, ConverterParameter=2}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="4" IsChecked="{Binding CompressionThreads, Converter={StaticResource Equals}, ConverterParameter=4}"/>
+                    <RadioButton Style="{StaticResource Pill}" Content="8" IsChecked="{Binding CompressionThreads, Converter={StaticResource Equals}, ConverterParameter=8}"/>
+                </WrapPanel>
+                <TextBlock Style="{StaticResource Hint}" Text="Automático usa metade dos núcleos (até 4), para não deixar o servidor lento enquanto o banco está em uso."/>
+
+                <TextBlock Text="7-Zip" Style="{StaticResource FieldLabel}" Margin="0,16,0,5"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding SevenZipPath, UpdateSourceTrigger=LostFocus}" FontFamily="{StaticResource Mono}" FontSize="12"/>
+                    <Button Grid.Column="1" Content="Procurar…" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Command="{Binding BrowseSevenZipCommand}"/>
+                    <Button Grid.Column="2" Content="Verificar" Style="{StaticResource SecondaryButton}" Margin="0" Command="{Binding CheckSevenZipCommand}"/>
+                </Grid>
+                <TextBlock Text="{Binding SevenZipStatus}" Style="{StaticResource Hint}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="PROTEÇÕES ATIVAS" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Style="{StaticResource Body}">
+                    <Run Text="✓ O original só é apagado depois que o Google Drive confirma o arquivo idêntico (MD5)."/>
+                    <LineBreak/><Run Text="✓ Senha, token do Telegram e acesso ao Google ficam criptografados (DPAPI) e só funcionam neste computador."/>
+                    <LineBreak/><Run Text="✓ Configuração em pasta acessível só a administradores:"/> <Run Text="{Binding DataFolder, Mode=OneWay}" FontFamily="{StaticResource Mono}" FontSize="12"/>
+                    <LineBreak/><Run Text="✓ Toda alteração feita aqui é avisada no Telegram, com o usuário do Windows."/>
+                    <LineBreak/><Run Text="✓ Alerta se um backup quase não compactar ou encolher muito — sinais de ransomware ou corrupção."/>
+                    <LineBreak/><Run Text="✓ A retenção nunca apaga os backups mais recentes e manda os antigos para a lixeira (30 dias para recuperar)."/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

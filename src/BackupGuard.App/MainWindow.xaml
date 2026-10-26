@@ -1,0 +1,200 @@
+﻿<Window x:Class="BackupGuard.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:BackupGuard.App.ViewModels"
+        xmlns:v="clr-namespace:BackupGuard.App.Views"
+        Title="BackupGuard" Icon="Assets/app.ico" Width="1040" Height="680" MinWidth="820" MinHeight="520"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource Bg}"
+        FontFamily="Segoe UI" TextOptions.TextFormattingMode="Display" UseLayoutRounding="True"
+        Closing="OnClosing" StateChanged="OnStateChanged">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="40" ResizeBorderThickness="6" GlassFrameThickness="0,0,0,1"
+                      CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><v:DashboardView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:JobsViewModel}"><v:JobsView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HistoryViewModel}"><v:HistoryView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NotificationsViewModel}"><v:NotificationsView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DriveViewModel}"><v:DriveView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SecurityViewModel}"><v:SecurityView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LogsViewModel}"><v:LogsView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UpdatesViewModel}"><v:UpdatesView/></DataTemplate>
+
+        <Style x:Key="NavListItem" TargetType="ListBoxItem">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="bg" Background="Transparent" Height="33" Padding="14,0">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource SidebarHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource SidebarSelected}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LiveLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Foreground" Value="{StaticResource Text}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style x:Key="LiveValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontFamily" Value="{StaticResource Mono}"/>
+            <Setter Property="Foreground" Value="{StaticResource Text}"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="Root" Background="{StaticResource Bg}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== Barra superior ===== -->
+        <Border Grid.Row="0" BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Background="{StaticResource Bg}">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Style="{StaticResource CaptionButton}" Content="&#xE921;" Click="OnMinimize" ToolTip="Minimizar"/>
+                    <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Click="OnMaximize" ToolTip="Maximizar"/>
+                    <Button Style="{StaticResource CloseButton}" Content="&#xE8BB;" Click="OnClose" ToolTip="Fechar"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <ContentControl Content="{StaticResource Logo}" Width="20" Height="20" Focusable="False"/>
+                    <TextBlock Margin="14,0,0,0" VerticalAlignment="Center" FontSize="11.5">
+                        <Run Text="BACKUP" FontWeight="Bold"/><Run Text=" GUARD" Foreground="{StaticResource TextMuted}"/>
+                    </TextBlock>
+                    <Border Width="1" Height="14" Background="{StaticResource Border}" Margin="16,0"/>
+                    <TextBlock Text="{Binding MachineName}" FontSize="11.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"/>
+                    <Border Style="{StaticResource Badge}" Background="{StaticResource WarningBg}" Margin="14,0,0,0"
+                            Visibility="{Binding IsDemo, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="MODO DEMONSTRAÇÃO" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Warning}"/>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== Menu lateral ===== -->
+            <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource Border}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="14,0,14,12">
+                        <TextBlock Text="AO VIVO" FontSize="10.5" Foreground="{StaticResource TextMuted}" Margin="0,0,0,8"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Serviço" Style="{StaticResource LiveLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LiveService}" Style="{StaticResource LiveValue}"/>
+                            <TextBlock Grid.Row="1" Text="Último backup" Style="{StaticResource LiveLabel}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LiveLastBackup}" Style="{StaticResource LiveValue}"/>
+                            <TextBlock Grid.Row="2" Text="Fila" Style="{StaticResource LiveLabel}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LiveQueue}" Style="{StaticResource LiveValue}"/>
+                            <TextBlock Grid.Row="3" Text="Disco livre" Style="{StaticResource LiveLabel}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LiveDisk}" Style="{StaticResource LiveValue}"/>
+                            <TextBlock Grid.Row="4" Text="Drive usado" Style="{StaticResource LiveLabel}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding LiveDrive}" Style="{StaticResource LiveValue}"/>
+                        </Grid>
+                        <TextBlock Text="{Binding Version, StringFormat=v{0}}" FontSize="10.5" Foreground="{StaticResource TextMuted}" Margin="0,14,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="MENU" FontSize="10.5" Foreground="{StaticResource TextMuted}" Margin="14,14,0,8"/>
+                        <ListBox ItemsSource="{Binding Pages}" SelectedItem="{Binding Current}" Background="Transparent"
+                                 BorderThickness="0" ItemContainerStyle="{StaticResource NavListItem}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="13"
+                                                   Width="18" VerticalAlignment="Center" Foreground="{StaticResource Text}"/>
+                                        <TextBlock Text="{Binding Title}" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource Text}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== Conteúdo ===== -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="28,22,28,24" MaxWidth="900" HorizontalAlignment="Stretch">
+                        <TextBlock Text="{Binding Current.Title}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{Binding Current.Subtitle}" Style="{StaticResource PageSubtitle}"/>
+                        <ContentControl Content="{Binding Current}" Focusable="False"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Barra de alterações não salvas -->
+                <Border Grid.Row="1" Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0"
+                        Padding="28,10" Visibility="{Binding IsDirty, Converter={StaticResource BoolToVis}}">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="Descartar" Style="{StaticResource SecondaryButton}" Command="{Binding DiscardCommand}"
+                                    IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBool}}"/>
+                            <Button Style="{StaticResource PrimaryButton}" Margin="0" Command="{Binding SaveCommand}"
+                                    IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBool}}">
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Salvar e reiniciar serviço"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSaving}" Value="True">
+                                                    <Setter Property="Text" Value="Salvando…"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="7" Height="7" Fill="{StaticResource Warning}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Alterações não salvas" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text=" · o serviço só usa a nova configuração depois de salvar" FontSize="12"
+                                       Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <!-- Aviso rápido (toast) -->
+                <Border Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,18"
+                        Background="{StaticResource Accent}" CornerRadius="16" Padding="16,7"
+                        Visibility="{Binding Toast, Converter={StaticResource NullToVis}}">
+                    <TextBlock Text="{Binding Toast}" Foreground="White" FontSize="12"/>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
