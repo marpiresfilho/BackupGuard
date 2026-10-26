@@ -14,6 +14,7 @@ const string Help = """
       export-key <arquivo>           exporta a chave privada (para guardar a cópia de segurança)
       import-key <arquivo>           importa a chave privada de uma cópia de segurança
       sign <zip> <versão> [notas]    gera release.json e release.json.sig ao lado do .zip
+      verify-latest <versão-atual>   confere, como uma instalação faria, a última versão publicada
     """;
 
 try
@@ -24,6 +25,7 @@ try
         ["export-key", var path] => ExportKey(path),
         ["import-key", var path] => ImportKey(path),
         ["sign", var zip, var version, .. var rest] => Sign(zip, version, rest.Length > 0 ? string.Join(' ', rest) : null),
+        ["verify-latest", var current] => await VerifyLatestAsync(current),
         _ => Fail(Help),
     };
 }
@@ -81,6 +83,33 @@ int Sign(string zip, string version, string? notes)
     File.WriteAllBytes(Path.Combine(dir, UpdateManifest.SignatureFileName), signature);
     Console.WriteLine($"Assinado: {manifest.File} v{manifest.Version} (SHA-256 {sha256[..16]}…)");
     return 0;
+}
+
+// Faz exatamente o que uma instalação faria: consulta o GitHub, confere assinatura e SHA-256.
+async Task<int> VerifyLatestAsync(string current)
+{
+    var temp = Path.Combine(Path.GetTempPath(), "bg-verify-" + Guid.NewGuid().ToString("N"));
+    try
+    {
+        var paths = new BackupGuard.Core.Config.AppPaths(temp);
+        var manager = new UpdateManager(paths,
+            new GitHubReleases(new HttpClient { Timeout = TimeSpan.FromMinutes(10) }, BackupGuard.Core.AppInfo.UpdateRepository));
+        var update = await manager.CheckAsync(current, CancellationToken.None);
+        if (update is null)
+        {
+            Console.WriteLine($"Nenhuma versão mais nova que {current} publicada.");
+            return 0;
+        }
+        Console.WriteLine($"Encontrada {update.Version}: assinatura válida. Baixando e conferindo o pacote...");
+        var staged = await manager.StageAsync(update, CancellationToken.None);
+        Console.WriteLine($"Pacote íntegro (SHA-256 confere). Arquivos: {string.Join(", ", Directory.GetFileSystemEntries(staged).Select(Path.GetFileName))}");
+        return 0;
+    }
+    finally
+    {
+        if (Directory.Exists(temp))
+            Directory.Delete(temp, recursive: true);
+    }
 }
 
 void SaveKey(byte[] key)
