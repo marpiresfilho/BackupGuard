@@ -65,7 +65,12 @@ public sealed class MaintenanceTasks(
             var cs = state.Read(s => s.Jobs.GetValueOrDefault(job.Id));
             var dueDate = DateOnly.FromDateTime(due);
             // Aceita backup gerado até 1h antes do horário esperado (backup adiantado).
-            if (cs?.LastSuccessUtc >= dueUtc.AddHours(-1) || cs?.LastMissingAlertDate == dueDate)
+            var windowStart = dueUtc.AddHours(-1);
+            if (cs?.LastSuccessUtc >= windowStart || cs?.LastMissingAlertDate == dueDate)
+                continue;
+            // O arquivo chegou e está sendo compactado/enviado (pode levar horas em máquina lenta),
+            // ou está na pasta aguardando a vez: não é "backup não chegou".
+            if (cs?.InProgressSinceUtc is not null || NewestSourceFileUtc(job) >= windowStart)
                 continue;
 
             state.Update(s => state.Job(s, job.Id).LastMissingAlertDate = dueDate);
@@ -77,6 +82,29 @@ public sealed class MaintenanceTasks(
                 $"Último backup enviado: {last}\n" +
                 $"Verifique se o arquivo foi gerado em <code>{Format.Html(job.SourceFolder)}</code>.", ct);
             await health.FailAsync($"{job.Id}: backup não chegou ({due:dd/MM HH:mm})", ct);
+        }
+    }
+
+    /// <summary>Data de gravação do arquivo mais novo na pasta da tarefa (null se vazia ou inacessível).</summary>
+    private static DateTimeOffset? NewestSourceFileUtc(BackupJob job)
+    {
+        try
+        {
+            if (!Directory.Exists(job.SourceFolder))
+                return null;
+            var options = new EnumerationOptions { RecurseSubdirectories = job.IncludeSubfolders, IgnoreInaccessible = true };
+            var patterns = job.FilePatterns.Count == 0 ? ["*"] : job.FilePatterns;
+            DateTime? newest = patterns
+                .SelectMany(p => Directory.EnumerateFiles(job.SourceFolder, p, options))
+                .Where(f => !ArchiveNaming.IsIgnored(f))
+                .Select(File.GetLastWriteTimeUtc)
+                .DefaultIfEmpty()
+                .Max();
+            return newest is { } n && n != default ? new DateTimeOffset(n, TimeSpan.Zero) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
         }
     }
 

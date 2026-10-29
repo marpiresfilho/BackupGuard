@@ -48,6 +48,14 @@ public sealed record JobStatus(
             status = "Mais de 1 dia";
         }
 
+        // Em andamento tem prioridade: o backup novo já chegou e está sendo processado.
+        if (state?.InProgressFile is not null)
+        {
+            level = HealthLevel.Ok;
+            var since = state.InProgressSinceUtc is { } s ? $" desde {s.ToLocalTime():HH:mm}" : "";
+            status = $"{state.InProgressStage ?? "Processando"}{since}";
+        }
+
         var detail = state?.LastArchiveSize is { } archive && state.LastSourceSize is { } source and > 0
             ? $"{Format.Bytes(source)} → {Format.Bytes(archive)} ({Format.Percent((double)archive / source)})"
             : "—";

@@ -45,15 +45,24 @@ if (-not (Test-Path $zip)) { throw "Pacote não encontrado: $zip" }
 & $dotnet run --project tools\BackupGuard.Release -- sign $zip $Version $Notes
 if ($LASTEXITCODE -ne 0) { throw "Falha ao assinar." }
 
-# 4. Git + GitHub Release.
+# 4. Git + GitHub Release. Mensagem e notas vão por arquivo: aspas nas notas quebram
+# a passagem de argumentos para programas externos no Windows PowerShell.
+$utf8 = New-Object System.Text.UTF8Encoding($false)
+$messageFile = Join-Path $repoRoot "artifacts\commit-message.txt"
+$notesFile = Join-Path $repoRoot "artifacts\release-notes.txt"
+$message = "Versão $Version`n`n$Notes"
+if ($Trailer) { $message += "`n`n$Trailer" }
+[IO.File]::WriteAllText($messageFile, $message, $utf8)
+[IO.File]::WriteAllText($notesFile, $Notes, $utf8)
+
 git add -A
-$commitArgs = @("-m", "Versão $Version", "-m", $Notes)
-if ($Trailer) { $commitArgs += @("-m", $Trailer) }
-git commit @commitArgs
+git commit -F $messageFile
+if ($LASTEXITCODE -ne 0) { throw "Falha no commit; nada foi publicado." }
 git tag "v$Version"
-git push origin HEAD --tags
+git push origin HEAD "v$Version"
+if ($LASTEXITCODE -ne 0) { throw "Falha ao enviar ao GitHub." }
 gh release create "v$Version" $zip "artifacts\release.json" "artifacts\release.json.sig" `
-    --title "BackupGuard $Version" --notes $Notes
+    --title "BackupGuard $Version" --notes-file $notesFile
 if ($LASTEXITCODE -ne 0) { throw "Falha ao criar o Release no GitHub." }
 
 Write-Host ""

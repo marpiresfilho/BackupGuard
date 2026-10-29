@@ -47,6 +47,11 @@ public sealed class JobState
     public long? LastSourceSize { get; set; }
     public long? LastArchiveSize { get; set; }
     public DateOnly? LastMissingAlertDate { get; set; }
+
+    /// <summary>Arquivo sendo processado agora (null = nenhum). Mostrado no Painel.</summary>
+    public string? InProgressFile { get; set; }
+    public string? InProgressStage { get; set; }
+    public DateTimeOffset? InProgressSinceUtc { get; set; }
 }
 
 public sealed record UploadedSource(string Path, long Size, DateTime LastWriteUtc, string DriveFileId);

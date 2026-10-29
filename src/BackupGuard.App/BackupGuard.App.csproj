@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>BackupGuard</AssemblyName>
     <RootNamespace>BackupGuard.App</RootNamespace>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <Product>BackupGuard</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- O WPF nÃ£o inclui estes por padrÃ£o (conflito com System.Windows.Shapes.Path, que nÃ£o usamos). -->
+    <!-- O WPF nÃƒÆ’Ã‚Â£o inclui estes por padrÃƒÆ’Ã‚Â£o (conflito com System.Windows.Shapes.Path, que nÃƒÆ’Ã‚Â£o usamos). -->
     <Using Include="System.IO" />
     <Using Include="System.Net.Http" />
   </ItemGroup>

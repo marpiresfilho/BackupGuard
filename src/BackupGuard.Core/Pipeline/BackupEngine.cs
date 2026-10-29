@@ -48,6 +48,12 @@ public sealed class BackupEngine(
     {
         foreach (var file in Directory.EnumerateFiles(paths.WorkDir))
             TryDelete(file);
+        // Andamento de antes de uma queda/reinício não vale mais.
+        state.Update(s =>
+        {
+            foreach (var js in s.Jobs.Values)
+                (js.InProgressFile, js.InProgressStage, js.InProgressSinceUtc) = (null, null, null);
+        });
     }
 
     private readonly SemaphoreSlim _cycleGate = new(1, 1);
@@ -160,6 +166,7 @@ public sealed class BackupEngine(
         var sourceSize = source.Length;
         var sourceWrite = source.LastWriteTimeUtc;
         logger.LogInformation("Iniciando backup de {File} ({Size})", source.FullName, Format.Bytes(sourceSize));
+        SetProgress(job, Path.GetFileName(source.FullName), "Compactando");
 
         try
         {
@@ -168,12 +175,14 @@ public sealed class BackupEngine(
             EnsureFreeSpace(sourceSize);
 
             var compressTimer = Stopwatch.StartNew();
-            await zip.CompressAsync(source.FullName, archivePath, secrets.ArchivePassword, ct);
+            var compression = await zip.CompressAsync(source.FullName, archivePath, secrets.ArchivePassword, ct);
+            SetProgress(job, Path.GetFileName(source.FullName), "Conferindo");
             await zip.TestAsync(archivePath, secrets.ArchivePassword, ct);
             compressTimer.Stop();
             var archiveSize = new FileInfo(archivePath).Length;
             var localMd5 = await Md5Async(archivePath, ct);
 
+            SetProgress(job, Path.GetFileName(source.FullName), "Enviando");
             var uploadTimer = Stopwatch.StartNew();
             var folderId = await folders.ForJobAsync(job, ct);
             var drive = await driveProvider.GetAsync(ct);
@@ -221,6 +230,7 @@ public sealed class BackupEngine(
                       $"📄 {Format.Html(Path.GetFileName(source.FullName))}\n" +
                       $"📦 {Format.Bytes(sourceSize)} → {Format.Bytes(archiveSize)} ({Format.Percent((double)archiveSize / Math.Max(sourceSize, 1))} do original)\n" +
                       $"⏱ compactação {Format.Duration(compressTimer.Elapsed)} · envio {Format.Duration(uploadTimer.Elapsed)}\n" +
+                      $"⚙️ {compression.Description} · {Format.Bytes((long)(sourceSize / Math.Max(compressTimer.Elapsed.TotalSeconds, 1)))}/s\n" +
                       $"🔐 hash conferido no Drive";
             if (!sourceDeleted)
                 msg += "\n⚠️ não foi possível apagar o arquivo local; nova tentativa automática.";
@@ -239,7 +249,23 @@ public sealed class BackupEngine(
             TryDelete(archivePath);
             await RegisterFailureAsync(job, source.FullName, sourceSize, started.Elapsed, ex, ct);
         }
+        finally
+        {
+            SetProgress(job, null, null);
+        }
     }
+
+    /// <summary>Registra o que está sendo feito agora (Painel e alerta de "backup não chegou").</summary>
+    private void SetProgress(BackupJob job, string? file, string? stage) => state.Update(s =>
+    {
+        var js = state.Job(s, job.Id);
+        if (file is not null && js.InProgressFile != file)
+            js.InProgressSinceUtc = time.GetUtcNow();
+        js.InProgressFile = file;
+        js.InProgressStage = stage;
+        if (file is null)
+            js.InProgressSinceUtc = null;
+    });
 
     /// <summary>
     /// Sinais de problema: o backup encolheu muito (corrompido/truncado) ou quase não
