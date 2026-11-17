@@ -4,9 +4,9 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <Product>BackupGuard</Product>
-    <Description>Envia backups para o Google Drive com compactaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o e criptografia.</Description>
+    <Description>Envia backups para o Google Drive com compactaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o e criptografia.</Description>
     <InvariantGlobalization>false</InvariantGlobalization>
     <ApplicationIcon>..\BackupGuard.App\Assets\app.ico</ApplicationIcon>
   </PropertyGroup>

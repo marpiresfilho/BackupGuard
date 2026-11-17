@@ -33,7 +33,26 @@ try
     builder.Services.AddHostedService<UpdateWorker>();
     builder.Services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
 
-    await builder.Build().RunAsync();
+    var host = builder.Build();
+    if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
+        _ = ServiceHardening.EnsureAsync(host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("BackupGuard.Service"));
+
+    // Se uma rotina interna falhar, o host para sozinho. Sair com código de erro faz o Windows
+    // aplicar o reinício automático; com código 0 ele entenderia que a parada foi proposital.
+    var workers = host.Services.GetServices<IHostedService>().OfType<BackgroundService>().ToList();
+    bool AnyWorkerFailed() => workers.Any(w => w.ExecuteTask?.IsFaulted == true);
+    host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() =>
+    {
+        if (AnyWorkerFailed())
+            Environment.ExitCode = 1; // vai no status de parada informado ao Windows
+    });
+
+    await host.RunAsync();
+    if (AnyWorkerFailed())
+    {
+        Log.Fatal("Uma rotina interna falhou e o serviço parou; saindo com erro para o Windows reiniciá-lo");
+        return 1;
+    }
     return 0;
 }
 catch (Exception ex)

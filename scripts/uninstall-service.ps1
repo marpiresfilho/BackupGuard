@@ -18,6 +18,7 @@ if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
     & sc.exe delete $serviceName | Out-Null
     Write-Host "Serviço removido."
 }
+try { & schtasks.exe /Delete /F /TN "BackupGuard\IniciarAposBoot" 2>$null | Out-Null } catch { }
 Remove-Item (Join-Path $env:ProgramData "Microsoft\Windows\Start Menu\Programs\BackupGuard.lnk") -ErrorAction SilentlyContinue
 if (Test-Path $InstallDir) {
     Remove-Item -Recurse -Force $InstallDir

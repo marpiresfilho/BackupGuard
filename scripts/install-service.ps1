@@ -59,13 +59,19 @@ $exe = Join-Path $InstallDir "BackupGuard.Service.exe"
 
 if (-not $existing) {
     Write-Host "Registrando serviço..." -ForegroundColor Cyan
-    & sc.exe create $serviceName binPath= "`"$exe`"" start= auto DisplayName= "BackupGuard - Backup em nuvem" | Out-Null
+    & sc.exe create $serviceName binPath= "`"$exe`"" start= delayed-auto DisplayName= "BackupGuard - Backup em nuvem" | Out-Null
     & sc.exe description $serviceName "Envia backups para o Google Drive com compactação e criptografia." | Out-Null
 }
 
+# Início atrasado: sobe logo depois do boot, sem disputar o limite de 30 s com os outros serviços
+# (estourar esse limite não aciona o reinício automático).
+& sc.exe config $serviceName start= delayed-auto | Out-Null
 # Reinicia sozinho se cair: após 1 min, 1 min, 5 min; zera a contagem a cada 24h.
 & sc.exe failure $serviceName reset= 86400 actions= restart/60000/restart/60000/restart/300000 | Out-Null
 & sc.exe failureflag $serviceName 1 | Out-Null
+# Rede de segurança: 5 min após o boot, inicia o serviço se ainda estiver parado.
+& schtasks.exe /Create /F /TN "BackupGuard\IniciarAposBoot" /SC ONSTART /DELAY 0005:00 /RU SYSTEM /RL HIGHEST `
+    /TR "$env:SystemRoot\System32\sc.exe start $serviceName" | Out-Null
 
 # Atalho da interface no Menu Iniciar (para todos os usuários; abrir pede administrador).
 $shortcutPath = Join-Path $env:ProgramData "Microsoft\Windows\Start Menu\Programs\BackupGuard.lnk"
